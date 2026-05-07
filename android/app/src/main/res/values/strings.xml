@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Spin for Enterprise</string>
+
+    <!-- Tabs -->
+    <string name="tab_spin">Spin</string>
+    <string name="tab_ads">Watch Ads</string>
+    <string name="tab_tasks">Tasks</string>
+
+    <!-- Spin screen -->
+    <string name="spin_title">Spin the Wheel</string>
+    <string name="spin_now">SPIN NOW</string>
+    <string name="wins_remaining">Wins remaining today: %1$d</string>
+    <string name="cooldown_message">Next spin in %1$d minutes</string>
+    <string name="max_wins_reached">You\'ve reached the max wins for today!</string>
+    <string name="pointer">Pointer</string>
+
+    <!-- Watch Ads screen -->
+    <string name="watch_ads_title">Watch Ads</string>
+    <string name="watch_ads_desc">Watch ads to earn extra spins.\nComing soon!</string>
+
+    <!-- Tasks screen -->
+    <string name="tasks_title">Tasks</string>
+    <string name="tasks_desc">Complete tasks to earn rewards.\nComing soon!</string>
+</resources>

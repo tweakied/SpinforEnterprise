@@ -1,0 +1,1 @@
+This app collects your location and basic device information for analytics and research purposes. Your data helps us improve the app experience. You can deny this permission and still use the app.
