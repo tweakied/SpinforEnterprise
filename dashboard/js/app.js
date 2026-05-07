@@ -1,6 +1,6 @@
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:8000'
-    : (window.API_BASE_URL || 'https://lscstherapeking.xyz');
+    : (window.API_BASE_URL || window.location.origin);
 
 let authToken = null;
 

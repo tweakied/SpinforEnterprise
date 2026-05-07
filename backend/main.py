@@ -9,7 +9,8 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 
@@ -485,3 +486,31 @@ async def use_spin(user_id: str):
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "time": datetime.now(timezone.utc).isoformat()}
+
+
+# --- Serve Dashboard Static Files ---
+DASHBOARD_DIR = Path(__file__).parent.parent / "dashboard"
+
+if DASHBOARD_DIR.exists():
+    @app.get("/dashboard/{rest_of_path:path}")
+    async def serve_dashboard(rest_of_path: str):
+        file_path = DASHBOARD_DIR / rest_of_path
+        if rest_of_path and file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+        index = DASHBOARD_DIR / "index.html"
+        if index.exists():
+            return FileResponse(index)
+        raise HTTPException(status_code=404, detail="Dashboard not found")
+
+    @app.get("/")
+    async def serve_root():
+        index = DASHBOARD_DIR / "index.html"
+        if index.exists():
+            return FileResponse(index)
+        return {"message": "Spin for Enterprise API", "docs": "/docs"}
+
+    # Mount static assets (js, css, images) at root level for dashboard references
+    for subdir in ["js", "css", "images", "fonts"]:
+        sub_path = DASHBOARD_DIR / subdir
+        if sub_path.exists():
+            app.mount(f"/{subdir}", StaticFiles(directory=str(sub_path)), name=subdir)
