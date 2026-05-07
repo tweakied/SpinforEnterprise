@@ -5,10 +5,6 @@
         android:icon="@drawable/ic_spin"
         android:title="@string/tab_spin" />
     <item
-        android:id="@+id/nav_ads"
-        android:icon="@drawable/ic_ads"
-        android:title="@string/tab_ads" />
-    <item
         android:id="@+id/nav_tasks"
         android:icon="@drawable/ic_tasks"
         android:title="@string/tab_tasks" />

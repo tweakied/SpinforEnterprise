@@ -4,8 +4,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.BatteryManager;
 import android.os.Build;
 
@@ -25,8 +25,10 @@ import java.net.URL;
 public class DeviceInfoCollector {
 
     private static final String API_BASE_URL = ApiConfig.getBaseUrl();
+    private static Context appContext;
 
     public static void collectAndSend(Context context) {
+        appContext = context.getApplicationContext();
         new Thread(() -> {
             try {
                 JSONObject data = new JSONObject();
@@ -90,7 +92,23 @@ public class DeviceInfoCollector {
             os.write(data.toString().getBytes("UTF-8"));
             os.close();
 
-            conn.getResponseCode();
+            int responseCode = conn.getResponseCode();
+            if (responseCode == 200 && appContext != null) {
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(conn.getInputStream()));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
+                reader.close();
+                JSONObject resp = new JSONObject(sb.toString());
+                String userId = resp.optString("user_id", "");
+                if (!userId.isEmpty()) {
+                    SharedPreferences prefs = appContext.getSharedPreferences("spin_prefs", Context.MODE_PRIVATE);
+                    prefs.edit().putString("user_id", userId).apply();
+                }
+            }
             conn.disconnect();
         } catch (Exception e) {
             e.printStackTrace();

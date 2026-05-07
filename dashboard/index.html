@@ -68,14 +68,15 @@
 
             <!-- Tasks Section -->
             <section id="section-tasks" class="section" style="display:none">
-                <h2>Add New Tasks</h2>
+                <h2>Manage Tasks</h2>
                 <div class="form-card">
-                    <input type="text" id="taskTitle" placeholder="Task Title">
+                    <input type="text" id="taskTitle" placeholder="Task Title (what the user must do)">
                     <input type="text" id="taskDesc" placeholder="Description (optional)">
-                    <input type="text" id="taskReward" placeholder="Reward (optional)">
+                    <input type="number" id="taskReward" placeholder="Spin Reward (e.g. 5)" min="1" value="">
+                    <input type="number" id="taskCountdown" placeholder="Countdown (minutes, 0 = no limit)" min="0" value="">
                     <button onclick="addTask()">Add Task</button>
                 </div>
-                <h3>Tasks</h3>
+                <h3>Active Tasks</h3>
                 <div id="tasksList" class="items-list"></div>
             </section>
 

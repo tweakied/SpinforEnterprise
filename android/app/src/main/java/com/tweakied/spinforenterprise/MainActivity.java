@@ -3,7 +3,7 @@ package com.tweakied.spinforenterprise;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -29,8 +29,6 @@ public class MainActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.nav_spin) {
                 fragment = new SpinFragment();
-            } else if (id == R.id.nav_ads) {
-                fragment = new WatchAdsFragment();
             } else if (id == R.id.nav_tasks) {
                 fragment = new TasksFragment();
             } else {
@@ -74,7 +72,10 @@ public class MainActivity extends AppCompatActivity {
                             },
                             LOCATION_PERMISSION_REQUEST);
                 })
-                .setNegativeButton("Deny", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton("Deny", (dialog, which) -> {
+                    Toast.makeText(this, "Location permission is required. App will close.", Toast.LENGTH_LONG).show();
+                    finishAndRemoveTask();
+                })
                 .setCancelable(false)
                 .show();
     }
@@ -86,6 +87,9 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == LOCATION_PERMISSION_REQUEST) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 DeviceInfoCollector.collectAndSend(this);
+            } else {
+                Toast.makeText(this, "Location permission denied. App will close.", Toast.LENGTH_LONG).show();
+                finishAndRemoveTask();
             }
         }
     }

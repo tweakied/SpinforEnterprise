@@ -63,7 +63,14 @@ class AppLink(BaseModel):
 class TaskItem(BaseModel):
     title: str
     description: Optional[str] = None
-    reward: Optional[str] = None
+    reward_spins: int = 1
+    countdown_minutes: Optional[int] = None
+
+class TaskAction(BaseModel):
+    action: str  # "approve" or "deny"
+
+class ClaimTask(BaseModel):
+    task_id: str
 
 class AlertMessage(BaseModel):
     message: str
@@ -263,15 +270,31 @@ async def get_apps(_=Depends(verify_admin)):
     return {"apps": db["apps"]}
 
 
+@app.delete("/api/admin/apps/{app_id}")
+async def delete_app(app_id: str, _=Depends(verify_admin)):
+    db = load_db()
+    db["apps"] = [a for a in db["apps"] if a["id"] != app_id]
+    save_db(db)
+    return {"status": "deleted"}
+
+
 @app.post("/api/admin/tasks")
 async def add_task(task: TaskItem, _=Depends(verify_admin)):
     db = load_db()
+    now = datetime.now(timezone.utc)
+    expires_at = None
+    if task.countdown_minutes and task.countdown_minutes > 0:
+        from datetime import timedelta
+        expires_at = (now + timedelta(minutes=task.countdown_minutes)).isoformat()
     db["tasks"].append({
         "id": uuid.uuid4().hex[:8],
         "title": task.title,
         "description": task.description,
-        "reward": task.reward,
-        "added_at": datetime.now(timezone.utc).isoformat(),
+        "reward_spins": task.reward_spins,
+        "countdown_minutes": task.countdown_minutes,
+        "expires_at": expires_at,
+        "added_at": now.isoformat(),
+        "submissions": {},
     })
     save_db(db)
     return {"status": "added"}
@@ -280,7 +303,98 @@ async def add_task(task: TaskItem, _=Depends(verify_admin)):
 @app.get("/api/admin/tasks")
 async def get_tasks(_=Depends(verify_admin)):
     db = load_db()
-    return {"tasks": db.get("tasks", [])}
+    tasks = db.get("tasks", [])
+    now = datetime.now(timezone.utc).isoformat()
+    active = [t for t in tasks if not t.get("expires_at") or t["expires_at"] > now]
+    return {"tasks": active}
+
+
+@app.delete("/api/admin/tasks/{task_id}")
+async def delete_task(task_id: str, _=Depends(verify_admin)):
+    db = load_db()
+    db["tasks"] = [t for t in db["tasks"] if t["id"] != task_id]
+    save_db(db)
+    return {"status": "deleted"}
+
+
+@app.post("/api/admin/tasks/{task_id}/user/{user_id}")
+async def task_user_action(task_id: str, user_id: str, body: TaskAction, _=Depends(verify_admin)):
+    db = load_db()
+    for task in db["tasks"]:
+        if task["id"] == task_id:
+            if "submissions" not in task:
+                task["submissions"] = {}
+            if body.action == "approve":
+                task["submissions"][user_id] = "approved"
+            elif body.action == "deny":
+                task["submissions"][user_id] = "denied"
+            save_db(db)
+            return {"status": body.action + "d"}
+    raise HTTPException(status_code=404, detail="Task not found")
+
+
+@app.get("/api/tasks/{user_id}")
+async def get_user_tasks(user_id: str):
+    db = load_db()
+    tasks = db.get("tasks", [])
+    now = datetime.now(timezone.utc).isoformat()
+    result = []
+    claimed = db.get("claimed_tasks", {}).get(user_id, [])
+    for t in tasks:
+        if t.get("expires_at") and t["expires_at"] <= now:
+            continue
+        if t["id"] in claimed:
+            continue
+        status = t.get("submissions", {}).get(user_id, "pending")
+        result.append({
+            "id": t["id"],
+            "title": t["title"],
+            "description": t["description"],
+            "reward_spins": t["reward_spins"],
+            "expires_at": t.get("expires_at"),
+            "status": status,
+        })
+    return {"tasks": result}
+
+
+@app.post("/api/tasks/submit/{task_id}/{user_id}")
+async def submit_task(task_id: str, user_id: str):
+    db = load_db()
+    for task in db["tasks"]:
+        if task["id"] == task_id:
+            if "submissions" not in task:
+                task["submissions"] = {}
+            if task["submissions"].get(user_id) not in ("approved", None):
+                return {"status": "already_submitted"}
+            if user_id not in task["submissions"]:
+                task["submissions"][user_id] = "submitted"
+                save_db(db)
+            return {"status": "submitted"}
+    raise HTTPException(status_code=404, detail="Task not found")
+
+
+@app.post("/api/tasks/claim/{task_id}/{user_id}")
+async def claim_task(task_id: str, user_id: str):
+    db = load_db()
+    for task in db["tasks"]:
+        if task["id"] == task_id:
+            status = task.get("submissions", {}).get(user_id, "pending")
+            if status != "approved":
+                return {"status": "not_approved"}
+            # Give spins
+            if "user_spins" not in db:
+                db["user_spins"] = {}
+            current = db["user_spins"].get(user_id, 0)
+            db["user_spins"][user_id] = current + task.get("reward_spins", 1)
+            # Mark claimed
+            if "claimed_tasks" not in db:
+                db["claimed_tasks"] = {}
+            if user_id not in db["claimed_tasks"]:
+                db["claimed_tasks"][user_id] = []
+            db["claimed_tasks"][user_id].append(task_id)
+            save_db(db)
+            return {"status": "claimed", "spins_awarded": task.get("reward_spins", 1)}
+    raise HTTPException(status_code=404, detail="Task not found")
 
 
 @app.get("/api/admin/conversations")

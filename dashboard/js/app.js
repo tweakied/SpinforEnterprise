@@ -157,9 +157,12 @@ async function loadApps() {
                     <div class="list-item-title">${a.name}</div>
                     <div class="list-item-meta">${a.url}</div>
                 </div>
-                <span class="${a.claimed ? 'claimed-badge' : 'available-badge'}">
-                    ${a.claimed ? 'Claimed' : 'Available'}
-                </span>
+                <div class="list-item-actions">
+                    <span class="${a.claimed ? 'claimed-badge' : 'available-badge'}">
+                        ${a.claimed ? 'Claimed' : 'Available'}
+                    </span>
+                    <button class="btn-delete" onclick="deleteApp('${a.id}')">Delete</button>
+                </div>
             </div>
         `).join('');
     } catch (e) {
@@ -167,40 +170,109 @@ async function loadApps() {
     }
 }
 
+async function deleteApp(appId) {
+    if (!confirm('Delete this app link permanently?')) return;
+    await apiFetch(`/api/admin/apps/${appId}`, { method: 'DELETE' });
+    loadApps();
+}
+
 async function addTask() {
     const title = document.getElementById('taskTitle').value.trim();
     const description = document.getElementById('taskDesc').value.trim();
-    const reward = document.getElementById('taskReward').value.trim();
+    const rewardSpins = parseInt(document.getElementById('taskReward').value) || 1;
+    const countdown = parseInt(document.getElementById('taskCountdown').value) || 0;
     if (!title) return;
     await apiFetch('/api/admin/tasks', {
         method: 'POST',
-        body: JSON.stringify({ title, description: description || null, reward: reward || null }),
+        body: JSON.stringify({
+            title,
+            description: description || null,
+            reward_spins: rewardSpins,
+            countdown_minutes: countdown > 0 ? countdown : null,
+        }),
     });
     document.getElementById('taskTitle').value = '';
     document.getElementById('taskDesc').value = '';
     document.getElementById('taskReward').value = '';
+    document.getElementById('taskCountdown').value = '';
     loadTasks();
+}
+
+function formatCountdown(expiresAt) {
+    if (!expiresAt) return '';
+    const now = new Date();
+    const exp = new Date(expiresAt);
+    const diff = exp - now;
+    if (diff <= 0) return '<span class="timer-expired">EXPIRED</span>';
+    const hrs = Math.floor(diff / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    return `<span class="timer-active">${hrs}h ${mins}m ${secs}s left</span>`;
 }
 
 async function loadTasks() {
     try {
         const data = await apiFetch('/api/admin/tasks');
+        const usersData = await apiFetch('/api/admin/users');
         const list = document.getElementById('tasksList');
         if (!data.tasks.length) {
             list.innerHTML = '<p class="empty-text">No tasks added yet.</p>';
             return;
         }
-        list.innerHTML = data.tasks.map(t => `
-            <div class="list-item">
+        list.innerHTML = data.tasks.map(t => {
+            const submissions = t.submissions || {};
+            const submittedUsers = Object.entries(submissions);
+            let userRows = '';
+            if (submittedUsers.length > 0) {
+                userRows = `<div class="task-submissions"><h4>User Submissions</h4>` +
+                    submittedUsers.map(([uid, status]) => {
+                        const user = usersData.users.find(u => u.user_id === uid);
+                        const label = user ? `${user.ip} (${uid})` : uid;
+                        let actions = '';
+                        if (status === 'submitted') {
+                            actions = `<button class="btn-approve" onclick="taskAction('${t.id}','${uid}','approve')">Approve</button>
+                                       <button class="btn-deny" onclick="taskAction('${t.id}','${uid}','deny')">Deny</button>`;
+                        }
+                        return `<div class="submission-row">
+                            <span class="submission-user">${label}</span>
+                            <span class="submission-status status-${status}">${status.toUpperCase()}</span>
+                            ${actions}
+                        </div>`;
+                    }).join('') + `</div>`;
+            }
+            return `
+            <div class="list-item task-item">
                 <div class="list-item-info">
                     <div class="list-item-title">${t.title}</div>
-                    <div class="list-item-meta">${t.description || ''} ${t.reward ? '| Reward: ' + t.reward : ''}</div>
+                    <div class="list-item-meta">
+                        ${t.description || ''}
+                        | Reward: ${t.reward_spins || 1} spin(s)
+                        ${t.expires_at ? '| ' + formatCountdown(t.expires_at) : ''}
+                    </div>
                 </div>
-            </div>
-        `).join('');
+                <div class="list-item-actions">
+                    <button class="btn-delete" onclick="deleteTask('${t.id}')">Delete</button>
+                </div>
+                ${userRows}
+            </div>`;
+        }).join('');
     } catch (e) {
         console.error('Failed to load tasks', e);
     }
+}
+
+async function deleteTask(taskId) {
+    if (!confirm('Delete this task for everyone permanently?')) return;
+    await apiFetch(`/api/admin/tasks/${taskId}`, { method: 'DELETE' });
+    loadTasks();
+}
+
+async function taskAction(taskId, userId, action) {
+    await apiFetch(`/api/admin/tasks/${taskId}/user/${userId}`, {
+        method: 'POST',
+        body: JSON.stringify({ action }),
+    });
+    loadTasks();
 }
 
 async function giveSpins(userId) {
