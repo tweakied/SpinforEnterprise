@@ -1,0 +1,550 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0a0f;
+    color: #fff;
+    min-height: 100vh;
+}
+
+/* Login */
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 48px 40px;
+    width: 400px;
+    text-align: center;
+}
+
+.login-logo {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.login-card h1 {
+    font-size: 28px;
+    margin-bottom: 4px;
+    background: linear-gradient(135deg, #e94560, #533483);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login-subtitle {
+    color: #888;
+    margin-bottom: 32px;
+    font-size: 14px;
+}
+
+.login-card input {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.login-card input:focus {
+    border-color: #e94560;
+}
+
+.login-card button {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #e94560, #533483);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.login-card button:hover {
+    opacity: 0.9;
+}
+
+.error-text {
+    color: #e94560;
+    font-size: 13px;
+    margin-top: 12px;
+}
+
+/* Dashboard Layout */
+.dashboard {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 240px;
+    background: rgba(255, 255, 255, 0.03);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+    padding: 0 8px;
+}
+
+.sidebar-logo {
+    font-size: 28px;
+}
+
+.sidebar-header h2 {
+    font-size: 18px;
+    background: linear-gradient(135deg, #e94560, #533483);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-list {
+    list-style: none;
+    flex: 1;
+}
+
+.nav-item {
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: #999;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+
+.nav-item.active {
+    background: rgba(233, 69, 96, 0.15);
+    color: #e94560;
+}
+
+.nav-icon {
+    font-size: 18px;
+}
+
+.logout-btn {
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #888;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    color: #e94560;
+    border-color: #e94560;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+}
+
+.section h2 {
+    font-size: 24px;
+    margin-bottom: 24px;
+}
+
+.section h3 {
+    font-size: 18px;
+    margin: 24px 0 12px;
+    color: #ccc;
+}
+
+/* Users Grid */
+.users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+}
+
+.user-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.user-card.banned {
+    border-color: #e94560;
+    opacity: 0.7;
+}
+
+.user-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.user-id {
+    font-family: monospace;
+    color: #e94560;
+    font-size: 13px;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-active {
+    background: rgba(0, 255, 0, 0.15);
+    color: #66ff66;
+}
+
+.badge-banned {
+    background: rgba(233, 69, 96, 0.2);
+    color: #e94560;
+}
+
+.user-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.info-item {
+    font-size: 13px;
+}
+
+.info-label {
+    color: #666;
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.info-value {
+    color: #ccc;
+}
+
+.user-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-ban, .btn-unban {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-ban {
+    background: rgba(233, 69, 96, 0.2);
+    color: #e94560;
+}
+
+.btn-unban {
+    background: rgba(0, 255, 0, 0.15);
+    color: #66ff66;
+}
+
+.btn-ban:hover, .btn-unban:hover {
+    opacity: 0.8;
+}
+
+/* Form Card */
+.form-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 500px;
+}
+
+.form-card input {
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+}
+
+.form-card input:focus {
+    border-color: #e94560;
+}
+
+.form-card button {
+    padding: 12px;
+    background: linear-gradient(135deg, #e94560, #533483);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Items List */
+.items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.list-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-item-info {
+    flex: 1;
+}
+
+.list-item-title {
+    font-size: 14px;
+    color: #ddd;
+}
+
+.list-item-meta {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.claimed-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    background: rgba(233, 69, 96, 0.15);
+    color: #e94560;
+}
+
+.available-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    background: rgba(0, 255, 0, 0.15);
+    color: #66ff66;
+}
+
+.empty-text {
+    color: #555;
+    font-style: italic;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Give Spins Button */
+.btn-give-spins {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    background: rgba(83, 52, 131, 0.3);
+    color: #b388ff;
+}
+
+.btn-give-spins:hover {
+    opacity: 0.8;
+}
+
+/* Textarea */
+.form-card textarea {
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+    min-height: 100px;
+}
+
+.form-card textarea:focus {
+    border-color: #e94560;
+}
+
+/* Status Text */
+.status-text {
+    margin-top: 12px;
+    font-size: 14px;
+    padding: 0 4px;
+}
+
+/* Section Description */
+.section-desc {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+/* Delete Button */
+.btn-delete {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: rgba(233, 69, 96, 0.2);
+    color: #e94560;
+    transition: opacity 0.2s;
+}
+
+.btn-delete:hover {
+    opacity: 0.8;
+    background: rgba(233, 69, 96, 0.35);
+}
+
+.list-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Task Submissions */
+.task-item {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.task-submissions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.task-submissions h4 {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.submission-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+}
+
+.submission-user {
+    font-family: monospace;
+    font-size: 12px;
+    color: #bbb;
+    flex: 1;
+}
+
+.submission-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+.status-submitted {
+    background: rgba(255, 165, 0, 0.15);
+    color: #ffaa00;
+}
+
+.status-approved {
+    background: rgba(0, 255, 0, 0.15);
+    color: #66ff66;
+}
+
+.status-denied {
+    background: rgba(233, 69, 96, 0.15);
+    color: #e94560;
+}
+
+.status-pending {
+    background: rgba(150, 150, 150, 0.15);
+    color: #999;
+}
+
+.btn-approve, .btn-deny {
+    padding: 4px 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-approve {
+    background: rgba(0, 255, 0, 0.2);
+    color: #66ff66;
+}
+
+.btn-deny {
+    background: rgba(233, 69, 96, 0.2);
+    color: #e94560;
+}
+
+.btn-approve:hover, .btn-deny:hover {
+    opacity: 0.8;
+}
+
+.timer-active {
+    color: #ffaa00;
+    font-weight: 600;
+}
+
+.timer-expired {
+    color: #e94560;
+    font-weight: 600;
+}

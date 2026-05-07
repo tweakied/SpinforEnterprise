@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/task_card_bg"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp">
+
+    <TextView
+        android:id="@+id/taskTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/taskDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#AAAAAA"
+        android:textSize="13sp"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/taskReward"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#B388FF"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:layout_marginTop="6dp" />
+
+    <ProgressBar
+        android:id="@+id/taskProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginTop="10dp"
+        android:max="100"
+        android:progress="0"
+        android:progressDrawable="@drawable/progress_rainbow" />
+
+    <TextView
+        android:id="@+id/taskCountdown"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFAA00"
+        android:textSize="12sp"
+        android:layout_marginTop="6dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/spin_button_bg"
+            android:text="Submit"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textAllCaps="false"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnClaim"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/spin_button_bg"
+            android:text="Claim"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textAllCaps="false"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</LinearLayout>

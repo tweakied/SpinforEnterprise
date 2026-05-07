@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+    <!-- Shadow -->
+    <path
+        android:fillColor="#40000000"
+        android:pathData="M18,30 L7,8 L29,8 Z" />
+    <!-- Main body gradient effect (darker) -->
+    <path
+        android:fillColor="#E94560"
+        android:pathData="M18,28 L8,9 L28,9 Z" />
+    <!-- Inner highlight -->
+    <path
+        android:fillColor="#FF6B81"
+        android:pathData="M18,24 L12,11 L24,11 Z" />
+    <!-- Top shine -->
+    <path
+        android:fillColor="#FFB3C1"
+        android:pathData="M18,18 L14,12 L22,12 Z" />
+    <!-- Center dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18,14 m-2,0 a2,2 0 1,1 4,0 a2,2 0 1,1 -4,0" />
+</vector>
