@@ -31,9 +31,11 @@ public class SpinFragment extends Fragment {
     private Button spinButton;
     private TextView cooldownText;
     private TextView winsRemainingText;
+    private TextView bonusSpinsText;
     private SharedPreferences prefs;
     private Random random = new Random();
     private boolean isSpinning = false;
+    private int bonusSpins = 0;
 
     @Nullable
     @Override
@@ -52,13 +54,16 @@ public class SpinFragment extends Fragment {
         winsRemainingText = view.findViewById(R.id.winsRemainingText);
         ImageView pointerView = view.findViewById(R.id.pointerView);
 
+        bonusSpinsText = view.findViewById(R.id.bonusSpinsText);
         prefs = requireContext().getSharedPreferences("spin_prefs", Context.MODE_PRIVATE);
 
+        fetchBonusSpins();
+        fetchAlertMessage();
         updateUI();
 
         spinButton.setOnClickListener(v -> {
             if (isSpinning) return;
-            if (!canSpin()) {
+            if (!canSpin() && bonusSpins <= 0) {
                 long remaining = getSpinCooldownRemaining();
                 int minutes = (int) (remaining / 60000);
                 cooldownText.setText(getString(R.string.cooldown_message, minutes));
@@ -219,7 +224,12 @@ public class SpinFragment extends Fragment {
         int remaining = MAX_WINS_PER_DAY - getDailyWins();
         winsRemainingText.setText(getString(R.string.wins_remaining, remaining));
 
-        if (!canSpin()) {
+        if (bonusSpinsText != null) {
+            bonusSpinsText.setText(getString(R.string.bonus_spins, bonusSpins));
+            bonusSpinsText.setVisibility(bonusSpins > 0 ? View.VISIBLE : View.GONE);
+        }
+
+        if (!canSpin() && bonusSpins <= 0) {
             long ms = getSpinCooldownRemaining();
             int minutes = (int) (ms / 60000);
             cooldownText.setText(getString(R.string.cooldown_message, minutes));
@@ -227,5 +237,56 @@ public class SpinFragment extends Fragment {
         } else {
             cooldownText.setVisibility(View.GONE);
         }
+    }
+
+    private void fetchBonusSpins() {
+        new Thread(() -> {
+            try {
+                String deviceId = prefs.getString("device_id", "");
+                if (deviceId.isEmpty()) return;
+                String usrId = deviceId.length() > 12 ? deviceId.substring(0, 12) : deviceId;
+                java.net.URL url = new java.net.URL(ApiConfig.getBaseUrl() + "/api/spins/" + usrId);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                if (conn.getResponseCode() == 200) {
+                    java.io.BufferedReader reader = new java.io.BufferedReader(
+                            new java.io.InputStreamReader(conn.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) sb.append(line);
+                    reader.close();
+                    org.json.JSONObject json = new org.json.JSONObject(sb.toString());
+                    bonusSpins = json.optInt("spins", 0);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(this::updateUI);
+                    }
+                }
+                conn.disconnect();
+            } catch (Exception ignored) {}
+        }).start();
+    }
+
+    private void fetchAlertMessage() {
+        new Thread(() -> {
+            try {
+                java.net.URL url = new java.net.URL(ApiConfig.getBaseUrl() + "/api/alert-message");
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                if (conn.getResponseCode() == 200) {
+                    java.io.BufferedReader reader = new java.io.BufferedReader(
+                            new java.io.InputStreamReader(conn.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) sb.append(line);
+                    reader.close();
+                    org.json.JSONObject json = new org.json.JSONObject(sb.toString());
+                    String msg = json.optString("message", "");
+                    if (!msg.isEmpty()) {
+                        prefs.edit().putString("server_alert_message", msg).apply();
+                    }
+                }
+                conn.disconnect();
+            } catch (Exception ignored) {}
+        }).start();
     }
 }

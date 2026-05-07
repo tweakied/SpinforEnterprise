@@ -1,0 +1,9 @@
+# Spin for Enterprise — Configuration
+# Fill in your values below
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+
+# Optional: Override admin credentials
+# ADMIN_USERNAME=FruckRajeeto
+# ADMIN_PASSWORD=Mothero

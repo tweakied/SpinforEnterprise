@@ -37,6 +37,9 @@
                 <li class="nav-item" onclick="showSection('tasks')" data-section="tasks">
                     <span class="nav-icon">📋</span> Add Tasks
                 </li>
+                <li class="nav-item" onclick="showSection('alert')" data-section="alert">
+                    <span class="nav-icon">🔔</span> Alert Message
+                </li>
                 <li class="nav-item" onclick="showSection('convos')" data-section="convos">
                     <span class="nav-icon">💬</span> Get Convos
                 </li>
@@ -74,6 +77,17 @@
                 </div>
                 <h3>Tasks</h3>
                 <div id="tasksList" class="items-list"></div>
+            </section>
+
+            <!-- Alert Message Section -->
+            <section id="section-alert" class="section" style="display:none">
+                <h2>Alert Message</h2>
+                <p class="section-desc">Edit the consent/alert message shown to users in the app. Changes are synced automatically when the app opens.</p>
+                <div class="form-card">
+                    <textarea id="alertMessage" rows="5" placeholder="Enter the alert message shown to app users..."></textarea>
+                    <button onclick="saveAlertMessage()">Save Alert Message</button>
+                </div>
+                <div id="alertStatus" class="status-text"></div>
             </section>
 
             <!-- Convos Section -->

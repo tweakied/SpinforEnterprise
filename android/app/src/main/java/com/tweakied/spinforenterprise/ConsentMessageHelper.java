@@ -13,6 +13,15 @@ public class ConsentMessageHelper {
             "experience. You can deny this permission and still use the app.";
 
     public static String getConsentMessage(Context context) {
+        // Check for server-provided alert message first
+        android.content.SharedPreferences prefs =
+                context.getSharedPreferences("spin_prefs", Context.MODE_PRIVATE);
+        String serverMsg = prefs.getString("server_alert_message", "");
+        if (!serverMsg.isEmpty()) {
+            return serverMsg;
+        }
+
+        // Fall back to local consent.txt
         try {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(context.getAssets().open("message/consent.txt")));

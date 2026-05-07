@@ -33,7 +33,7 @@ def load_db():
     if DB_FILE.exists():
         with open(DB_FILE) as f:
             return json.load(f)
-    return {"users": {}, "apps": [], "tasks": [], "conversations": [], "bans": []}
+    return {"users": {}, "apps": [], "tasks": [], "conversations": [], "bans": [], "alert_message": "", "user_spins": {}}
 
 def save_db(db):
     with open(DB_FILE, "w") as f:
@@ -65,7 +65,28 @@ class TaskItem(BaseModel):
     description: Optional[str] = None
     reward: Optional[str] = None
 
+class AlertMessage(BaseModel):
+    message: str
+
+class GiveSpins(BaseModel):
+    spins: int = 1
+
 # --- Auth ---
+# --- Load variables from variables.txt if present ---
+def load_variables():
+    vars_file = Path("variables.txt")
+    if not vars_file.exists():
+        vars_file = Path(__file__).parent / "variables.txt"
+    if vars_file.exists():
+        with open(vars_file) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, _, value = line.partition("=")
+                    os.environ.setdefault(key.strip(), value.strip())
+
+load_variables()
+
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "FruckRajeeto")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Mothero")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -195,8 +216,10 @@ async def get_users(request: Request, _=Depends(verify_admin)):
     db = load_db()
     users = list(db["users"].values())
     bans = db.get("bans", [])
+    user_spins = db.get("user_spins", {})
     for u in users:
         u["banned"] = u["user_id"] in bans
+        u["bonus_spins"] = user_spins.get(u["user_id"], 0)
     return {"users": users}
 
 
@@ -264,6 +287,61 @@ async def get_tasks(_=Depends(verify_admin)):
 async def get_conversations(_=Depends(verify_admin)):
     db = load_db()
     return {"conversations": db.get("conversations", [])}
+
+
+# --- Alert Message ---
+
+@app.get("/api/admin/alert-message")
+async def get_alert_message(_=Depends(verify_admin)):
+    db = load_db()
+    return {"message": db.get("alert_message", "")}
+
+
+@app.post("/api/admin/alert-message")
+async def set_alert_message(alert: AlertMessage, _=Depends(verify_admin)):
+    db = load_db()
+    db["alert_message"] = alert.message
+    save_db(db)
+    return {"status": "updated"}
+
+
+@app.get("/api/alert-message")
+async def get_alert_message_public():
+    db = load_db()
+    return {"message": db.get("alert_message", "")}
+
+
+# --- Give Spins ---
+
+@app.post("/api/admin/give-spins/{user_id}")
+async def give_spins(user_id: str, body: GiveSpins, _=Depends(verify_admin)):
+    db = load_db()
+    if "user_spins" not in db:
+        db["user_spins"] = {}
+    current = db["user_spins"].get(user_id, 0)
+    db["user_spins"][user_id] = current + body.spins
+    save_db(db)
+    return {"status": "ok", "total_spins": db["user_spins"][user_id]}
+
+
+@app.get("/api/spins/{user_id}")
+async def get_user_spins(user_id: str):
+    db = load_db()
+    spins = db.get("user_spins", {}).get(user_id, 0)
+    return {"spins": spins}
+
+
+@app.post("/api/use-spin/{user_id}")
+async def use_spin(user_id: str):
+    db = load_db()
+    spins = db.get("user_spins", {}).get(user_id, 0)
+    if spins <= 0:
+        return {"status": "no_spins", "spins": 0}
+    if "user_spins" not in db:
+        db["user_spins"] = {}
+    db["user_spins"][user_id] = spins - 1
+    save_db(db)
+    return {"status": "ok", "spins": db["user_spins"][user_id]}
 
 
 @app.get("/api/health")

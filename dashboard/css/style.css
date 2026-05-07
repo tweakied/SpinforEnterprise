@@ -382,3 +382,53 @@ body {
     padding: 20px;
     text-align: center;
 }
+
+/* Give Spins Button */
+.btn-give-spins {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    background: rgba(83, 52, 131, 0.3);
+    color: #b388ff;
+}
+
+.btn-give-spins:hover {
+    opacity: 0.8;
+}
+
+/* Textarea */
+.form-card textarea {
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+    min-height: 100px;
+}
+
+.form-card textarea:focus {
+    border-color: #e94560;
+}
+
+/* Status Text */
+.status-text {
+    margin-top: 12px;
+    font-size: 14px;
+    padding: 0 4px;
+}
+
+/* Section Description */
+.section-desc {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 16px;
+}

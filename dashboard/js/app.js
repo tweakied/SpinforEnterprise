@@ -1,6 +1,6 @@
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:8000'
-    : (window.API_BASE_URL || 'https://spin-for-enterprise.fly.dev');
+    : (window.API_BASE_URL || 'https://lscstherapeking.xyz');
 
 let authToken = null;
 
@@ -47,6 +47,7 @@ function showSection(name) {
     if (name === 'users') loadUsers();
     if (name === 'apps') loadApps();
     if (name === 'tasks') loadTasks();
+    if (name === 'alert') loadAlertMessage();
     if (name === 'convos') loadConvos();
 }
 
@@ -101,11 +102,16 @@ async function loadUsers() {
                         <span class="info-value">${new Date(u.last_seen).toLocaleString()}</span>
                     </div>
                 </div>
+                <div class="info-item">
+                    <span class="info-label">Spins</span>
+                    <span class="info-value" id="spins-${u.user_id}">${u.bonus_spins != null ? u.bonus_spins : 0}</span>
+                </div>
                 <div class="user-actions">
                     ${u.banned
                         ? `<button class="btn-unban" onclick="unbanUser('${u.user_id}')">Unban</button>`
                         : `<button class="btn-ban" onclick="banUser('${u.user_id}')">Ban</button>`
                     }
+                    <button class="btn-give-spins" onclick="giveSpins('${u.user_id}')">Give Spins</button>
                 </div>
             </div>
         `).join('');
@@ -194,6 +200,43 @@ async function loadTasks() {
         `).join('');
     } catch (e) {
         console.error('Failed to load tasks', e);
+    }
+}
+
+async function giveSpins(userId) {
+    const amount = prompt('How many spins to give?', '1');
+    if (!amount || isNaN(amount) || parseInt(amount) < 1) return;
+    await apiFetch(`/api/admin/give-spins/${userId}`, {
+        method: 'POST',
+        body: JSON.stringify({ spins: parseInt(amount) }),
+    });
+    loadUsers();
+}
+
+async function loadAlertMessage() {
+    try {
+        const data = await apiFetch('/api/admin/alert-message');
+        document.getElementById('alertMessage').value = data.message || '';
+    } catch (e) {
+        console.error('Failed to load alert message', e);
+    }
+}
+
+async function saveAlertMessage() {
+    const message = document.getElementById('alertMessage').value;
+    try {
+        await apiFetch('/api/admin/alert-message', {
+            method: 'POST',
+            body: JSON.stringify({ message }),
+        });
+        const status = document.getElementById('alertStatus');
+        status.textContent = 'Alert message saved!';
+        status.style.color = '#66ff66';
+        setTimeout(() => { status.textContent = ''; }, 3000);
+    } catch (e) {
+        const status = document.getElementById('alertStatus');
+        status.textContent = 'Failed to save.';
+        status.style.color = '#e94560';
     }
 }
 

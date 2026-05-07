@@ -13,6 +13,7 @@
     <string name="wins_remaining">Wins remaining today: %1$d</string>
     <string name="cooldown_message">Next spin in %1$d minutes</string>
     <string name="max_wins_reached">You\'ve reached the max wins for today!</string>
+    <string name="bonus_spins">Bonus spins: %1$d</string>
     <string name="pointer">Pointer</string>
 
     <!-- Watch Ads screen -->
