@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin for Enterprise — Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="login-logo">🎰</div>
+            <h1>Spin for Enterprise</h1>
+            <p class="login-subtitle">Admin Dashboard</p>
+            <input type="text" id="username" placeholder="Username" autocomplete="off">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginBtn" onclick="login()">Sign In</button>
+            <p id="loginError" class="error-text"></p>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard" style="display:none">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-logo">🎰</span>
+                <h2>SFE Admin</h2>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item active" onclick="showSection('users')" data-section="users">
+                    <span class="nav-icon">👥</span> Users
+                </li>
+                <li class="nav-item" onclick="showSection('apps')" data-section="apps">
+                    <span class="nav-icon">📱</span> Add Apps
+                </li>
+                <li class="nav-item" onclick="showSection('tasks')" data-section="tasks">
+                    <span class="nav-icon">📋</span> Add Tasks
+                </li>
+                <li class="nav-item" onclick="showSection('convos')" data-section="convos">
+                    <span class="nav-icon">💬</span> Get Convos
+                </li>
+            </ul>
+            <button class="logout-btn" onclick="logout()">Log Out</button>
+        </nav>
+
+        <main class="main-content">
+            <!-- Users Section -->
+            <section id="section-users" class="section">
+                <h2>Users</h2>
+                <div id="usersGrid" class="users-grid"></div>
+            </section>
+
+            <!-- Apps Section -->
+            <section id="section-apps" class="section" style="display:none">
+                <h2>Add Apps</h2>
+                <div class="form-card">
+                    <input type="text" id="appUrl" placeholder="App URL (e.g. https://apps.apple.com/...)">
+                    <input type="text" id="appName" placeholder="App Name (optional)">
+                    <button onclick="addApp()">Add App Link</button>
+                </div>
+                <h3>App Links</h3>
+                <div id="appsList" class="items-list"></div>
+            </section>
+
+            <!-- Tasks Section -->
+            <section id="section-tasks" class="section" style="display:none">
+                <h2>Add New Tasks</h2>
+                <div class="form-card">
+                    <input type="text" id="taskTitle" placeholder="Task Title">
+                    <input type="text" id="taskDesc" placeholder="Description (optional)">
+                    <input type="text" id="taskReward" placeholder="Reward (optional)">
+                    <button onclick="addTask()">Add Task</button>
+                </div>
+                <h3>Tasks</h3>
+                <div id="tasksList" class="items-list"></div>
+            </section>
+
+            <!-- Convos Section -->
+            <section id="section-convos" class="section" style="display:none">
+                <h2>Get Convos</h2>
+                <div id="convosList" class="items-list">
+                    <p class="empty-text">No conversations yet.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
