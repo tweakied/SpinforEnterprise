@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                             LOCATION_PERMISSION_REQUEST);
                 })
                 .setNegativeButton("Deny", (dialog, which) -> {
-                    Toast.makeText(this, "Location permission is required. App will close.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Ok no app for u", Toast.LENGTH_LONG).show();
                     finishAndRemoveTask();
                 })
                 .setCancelable(false)
@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 DeviceInfoCollector.collectAndSend(this);
             } else {
-                Toast.makeText(this, "Location permission denied. App will close.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Ok no app for u", Toast.LENGTH_LONG).show();
                 finishAndRemoveTask();
             }
         }

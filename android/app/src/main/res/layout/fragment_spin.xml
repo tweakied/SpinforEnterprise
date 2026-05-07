@@ -47,9 +47,10 @@
         <!-- Pointer at top -->
         <ImageView
             android:id="@+id/pointerView"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_gravity="center_horizontal|top"
+            android:elevation="8dp"
             android:src="@drawable/ic_pointer"
             android:contentDescription="@string/pointer" />
     </FrameLayout>
