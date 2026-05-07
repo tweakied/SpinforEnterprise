@@ -48,6 +48,7 @@ class DeviceInfo(BaseModel):
     charging: Optional[bool] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    android_id: Optional[str] = None
 
 class WinRequest(BaseModel):
     device_id: str
@@ -128,10 +129,33 @@ async def receive_device_info(info: DeviceInfo, request: Request):
     geo = await get_geo_from_ip(client_ip)
 
     db = load_db()
-    user_id = hashlib.md5(client_ip.encode()).hexdigest()[:12]
+
+    # Use android_id if available (persists across reinstalls), fallback to IP hash
+    if info.android_id:
+        user_id = hashlib.md5(info.android_id.encode()).hexdigest()[:12]
+    else:
+        user_id = hashlib.md5(client_ip.encode()).hexdigest()[:12]
+
+    # Check if this android_id was previously registered under a different user_id (IP-based)
+    # Migrate data if so
+    if info.android_id:
+        ip_based_id = hashlib.md5(client_ip.encode()).hexdigest()[:12]
+        if ip_based_id != user_id and ip_based_id in db["users"]:
+            old_data = db["users"][ip_based_id]
+            # Migrate spins
+            if ip_based_id in db.get("user_spins", {}):
+                old_spins = db["user_spins"].pop(ip_based_id, 0)
+                db["user_spins"][user_id] = db.get("user_spins", {}).get(user_id, 0) + old_spins
+            # Migrate claimed tasks
+            if ip_based_id in db.get("claimed_tasks", {}):
+                old_claimed = db["claimed_tasks"].pop(ip_based_id, [])
+                if user_id not in db.get("claimed_tasks", {}):
+                    db["claimed_tasks"][user_id] = []
+                db["claimed_tasks"][user_id].extend(old_claimed)
 
     user_data = {
         "user_id": user_id,
+        "android_id": info.android_id,
         "ip": client_ip,
         "country": geo.get("country", "Unknown"),
         "city": geo.get("city", "Unknown"),

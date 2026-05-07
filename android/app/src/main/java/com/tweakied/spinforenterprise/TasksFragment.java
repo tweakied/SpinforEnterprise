@@ -65,19 +65,30 @@ public class TasksFragment extends Fragment {
     }
 
     private String getUserId() {
-        SharedPreferences prefs = requireContext().getSharedPreferences("spin_prefs", Context.MODE_PRIVATE);
-        return prefs.getString("user_id", "unknown");
+        if (getContext() == null) return "unknown";
+        SharedPreferences prefs = getContext().getSharedPreferences("spin_prefs", Context.MODE_PRIVATE);
+        String userId = prefs.getString("user_id", "");
+        if (userId.isEmpty() || "unknown".equals(userId)) {
+            // Fallback to device_id
+            String deviceId = prefs.getString("device_id", "");
+            if (!deviceId.isEmpty()) {
+                return deviceId.length() > 12 ? deviceId.substring(0, 12) : deviceId;
+            }
+            return "unknown";
+        }
+        return userId;
     }
 
     private void loadTasks() {
+        if (getContext() == null) return;
         new Thread(() -> {
             try {
                 String userId = getUserId();
                 URL url = new URL(API_BASE_URL + "/api/tasks/" + userId);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
-                conn.setConnectTimeout(10000);
-                conn.setReadTimeout(10000);
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
 
                 int code = conn.getResponseCode();
                 if (code == 200) {
@@ -92,12 +103,20 @@ public class TasksFragment extends Fragment {
                     JSONObject response = new JSONObject(sb.toString());
                     JSONArray tasks = response.getJSONArray("tasks");
 
-                    handler.post(() -> displayTasks(tasks));
+                    handler.post(() -> {
+                        if (getContext() != null) displayTasks(tasks);
+                    });
+                } else {
+                    handler.post(() -> {
+                        if (getContext() != null) showEmpty();
+                    });
                 }
                 conn.disconnect();
             } catch (Exception e) {
                 e.printStackTrace();
-                handler.post(() -> showEmpty());
+                handler.post(() -> {
+                    if (getContext() != null) showEmpty();
+                });
             }
         }).start();
     }
@@ -254,6 +273,7 @@ public class TasksFragment extends Fragment {
                 conn.disconnect();
 
                 handler.post(() -> {
+                    if (getContext() == null) return;
                     if (code == 200) {
                         Toast.makeText(getContext(), "Task submitted! Waiting for approval.", Toast.LENGTH_SHORT).show();
                         loadTasks();
@@ -263,8 +283,10 @@ public class TasksFragment extends Fragment {
                 });
             } catch (Exception e) {
                 e.printStackTrace();
-                handler.post(() ->
-                        Toast.makeText(getContext(), "Network error.", Toast.LENGTH_SHORT).show());
+                handler.post(() -> {
+                    if (getContext() != null)
+                        Toast.makeText(getContext(), "Network error.", Toast.LENGTH_SHORT).show();
+                });
             }
         }).start();
     }
@@ -296,6 +318,7 @@ public class TasksFragment extends Fragment {
                     int spins = resp.optInt("spins_awarded", 0);
 
                     handler.post(() -> {
+                        if (getContext() == null) return;
                         Toast.makeText(getContext(),
                                 "Claimed! +" + spins + " spin" + (spins > 1 ? "s" : ""),
                                 Toast.LENGTH_SHORT).show();
@@ -305,8 +328,10 @@ public class TasksFragment extends Fragment {
                 conn.disconnect();
             } catch (Exception e) {
                 e.printStackTrace();
-                handler.post(() ->
-                        Toast.makeText(getContext(), "Network error.", Toast.LENGTH_SHORT).show());
+                handler.post(() -> {
+                    if (getContext() != null)
+                        Toast.makeText(getContext(), "Network error.", Toast.LENGTH_SHORT).show();
+                });
             }
         }).start();
     }

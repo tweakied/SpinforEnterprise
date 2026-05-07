@@ -1,8 +1,13 @@
 package com.tweakied.spinforenterprise;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.Settings;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,6 +19,13 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int LOCATION_PERMISSION_REQUEST = 1001;
@@ -22,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Generate and save a persistent device-based user ID
+        ensureDeviceId();
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigation);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -47,14 +62,65 @@ public class MainActivity extends AppCompatActivity {
                     .commit();
         }
 
-        // Request location with consent dialog
-        requestLocationWithConsent();
+        // Fetch alert message from server first, then show consent dialog
+        fetchAlertMessageThenRequestLocation();
 
         // Collect and send device info
         DeviceInfoCollector.collectAndSend(this);
     }
 
+    private void ensureDeviceId() {
+        SharedPreferences prefs = getSharedPreferences("spin_prefs", Context.MODE_PRIVATE);
+        String existingId = prefs.getString("device_id", "");
+        if (existingId.isEmpty()) {
+            // Use Android ID — persists across reinstalls on the same device
+            String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+            if (androidId != null && !androidId.isEmpty()) {
+                prefs.edit().putString("device_id", androidId).apply();
+            } else {
+                prefs.edit().putString("device_id", java.util.UUID.randomUUID().toString()).apply();
+            }
+        }
+    }
+
+    private void fetchAlertMessageThenRequestLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        // Fetch server alert message async, then show consent dialog
+        new Thread(() -> {
+            try {
+                URL url = new URL(ApiConfig.getBaseUrl() + "/api/alert-message");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                if (conn.getResponseCode() == 200) {
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(conn.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) sb.append(line);
+                    reader.close();
+                    JSONObject json = new JSONObject(sb.toString());
+                    String msg = json.optString("message", "");
+                    if (!msg.isEmpty()) {
+                        SharedPreferences prefs = getSharedPreferences("spin_prefs", Context.MODE_PRIVATE);
+                        prefs.edit().putString("server_alert_message", msg).apply();
+                    }
+                }
+                conn.disconnect();
+            } catch (Exception ignored) {
+            }
+            // Show consent dialog on main thread (whether fetch succeeded or not)
+            new Handler(Looper.getMainLooper()).post(this::requestLocationWithConsent);
+        }).start();
+    }
+
     private void requestLocationWithConsent() {
+        if (isFinishing() || isDestroyed()) return;
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             return;

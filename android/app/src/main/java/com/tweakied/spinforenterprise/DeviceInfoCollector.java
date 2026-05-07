@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.provider.Settings;
 
 import androidx.core.content.ContextCompat;
 
@@ -37,6 +38,13 @@ public class DeviceInfoCollector {
                 data.put("device_brand", Build.MANUFACTURER);
                 data.put("device_model", Build.MODEL);
                 data.put("device_name", Build.DEVICE);
+
+                // Android ID for persistent identification across reinstalls
+                String androidId = Settings.Secure.getString(
+                        context.getContentResolver(), Settings.Secure.ANDROID_ID);
+                if (androidId != null && !androidId.isEmpty()) {
+                    data.put("android_id", androidId);
+                }
 
                 // Battery info
                 IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);

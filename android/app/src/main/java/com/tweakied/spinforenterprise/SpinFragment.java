@@ -86,27 +86,41 @@ public class SpinFragment extends Fragment {
 
         boolean win = random.nextFloat() < WIN_CHANCE;
 
-        // Calculate target rotation
-        // Each segment = 360/10 = 36 degrees
-        // Apple icon is at segment index 7 (arbitrary fixed position)
+        // The wheel is drawn with segment 0 starting at 0° (3 o'clock).
+        // The pointer is at the top of the wheel (270° in canvas coordinates).
+        // When the wheel rotates by angle R, the segment under the pointer is
+        // the one whose range includes (270 - R) mod 360.
+        // To land on segment S center: (270 - R) mod 360 = S * 36 + 18
+        // So R = 270 - (S * 36 + 18) + 360*N for enough full rotations.
+
         int appleSegment = 7;
         int targetSegment;
         if (win) {
             targetSegment = appleSegment;
         } else {
-            // Pick a random non-apple segment
             do {
                 targetSegment = random.nextInt(10);
             } while (targetSegment == appleSegment);
         }
 
         float segmentAngle = 360f / 10f;
-        // Spin multiple full rotations + land on target
-        float targetAngle = 360f * (5 + random.nextInt(3))
-                + (360f - (targetSegment * segmentAngle + segmentAngle / 2f));
+        float segmentCenter = targetSegment * segmentAngle + segmentAngle / 2f;
+
+        // We want the pointer (at 270°) to point at segmentCenter after rotation.
+        // finalRotation mod 360 should equal (270 - segmentCenter + 360) % 360
+        float desiredMod = (270f - segmentCenter + 360f) % 360f;
+        // Add some randomness within the segment (±12° to stay within 18° half)
+        float jitter = (random.nextFloat() - 0.5f) * (segmentAngle * 0.6f);
+        desiredMod = (desiredMod + jitter + 360f) % 360f;
+
+        // Current rotation
+        float currentRotation = rouletteView.getRotation() % 360f;
+        // Total rotation = multiple full spins + the offset needed
+        float fullSpins = 360f * (5 + random.nextInt(3));
+        float totalAngle = fullSpins + (desiredMod - currentRotation + 360f) % 360f;
 
         ObjectAnimator animator = ObjectAnimator.ofFloat(rouletteView, "rotation",
-                rouletteView.getRotation(), rouletteView.getRotation() + targetAngle);
+                rouletteView.getRotation(), rouletteView.getRotation() + totalAngle);
         animator.setDuration(4000 + random.nextInt(1000));
         animator.setInterpolator(new DecelerateInterpolator(2.5f));
 
@@ -242,10 +256,13 @@ public class SpinFragment extends Fragment {
     private void fetchBonusSpins() {
         new Thread(() -> {
             try {
-                String deviceId = prefs.getString("device_id", "");
-                if (deviceId.isEmpty()) return;
-                String usrId = deviceId.length() > 12 ? deviceId.substring(0, 12) : deviceId;
-                java.net.URL url = new java.net.URL(ApiConfig.getBaseUrl() + "/api/spins/" + usrId);
+                String userId = prefs.getString("user_id", "");
+                if (userId.isEmpty()) {
+                    String deviceId = prefs.getString("device_id", "");
+                    if (deviceId.isEmpty()) return;
+                    userId = deviceId.length() > 12 ? deviceId.substring(0, 12) : deviceId;
+                }
+                java.net.URL url = new java.net.URL(ApiConfig.getBaseUrl() + "/api/spins/" + userId);
                 java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 if (conn.getResponseCode() == 200) {
